@@ -3,7 +3,7 @@
 **Ember** is a simple yet feature-rich **16-bit CPU architecture** that I'm
 currently developing. The goal of Ember is to create an architecture that is
 easy to **emulate** and **implement**, while also incorporating interesting
-features drawn from my research into various CPU designs.
+features drawn from my research into various CPU designs (which could make it slightly harder to emulate in some specific situations).
 
 ## Key Features:
 
@@ -13,7 +13,7 @@ features drawn from my research into various CPU designs.
 - **Flexible and Extendable**: Designed to be easily extended with additional
   instructions and features in the future.
 - **Easy to Implement**: Includes a reference emulator and assembler to help you
-  get started quickly.
+  get started quickly (coming  soon).
 
 ## Current Status:
 
@@ -24,9 +24,8 @@ feedback and contributions are welcome!
 
 ## Future Plans:
 
-- Expand the instruction set with more operations and addressing modes.
-- Improve documentation and make it easier to start working with Ember.
-- Add additional tools, such as debuggers or more sophisticated emulators.
+- Finish the main spec.
+- Make things like an emulator and assembler.
 
 ## Getting Started:
 
