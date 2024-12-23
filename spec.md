@@ -105,8 +105,10 @@ In order MSB to LSB:
 
 - Invert A: bitwise not applied to input A before main operation
 - Invert B: same but for input B
-- Flood Carry: The carry out for each bit is set to 1, but not the initial carry
-  in for the whole adder
+- Flood Carry: The carry out for each bit (including the carry out of the whole
+  ALU, meaning that if this is set the carry flag will always be set if the
+  instruction updates flags) is set to 1, but not the initial carry in for the
+  whole adder
 - Carry In: Initial carry in is set to 1
 - Or mode: The XOR operation part of the addition is changed to an OR, and the
   carry calculation for each bit is changed to A & B & CARRY instead of minimum
