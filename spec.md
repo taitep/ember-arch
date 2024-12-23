@@ -111,3 +111,30 @@ In order MSB to LSB:
 - Or mode: The XOR operation part of the addition is changed to an OR, and the
   carry calculation for each bit is changed to A & B & CARRY instead of minimum
   2 out of A, B and CARRY, which is the default.
+
+# Shifting
+
+Just like the ALU, the shift system has 5 control bits and an A and B input. The
+A input is the one that is shifted, and the B input is the amount to shift by.
+Shift direction is to the left unless otherwise specified.
+
+When a shift operation is performed, the last bit shifted out ends up in the
+carry flag, and the others are set like normal based on the end result of the
+shift.
+
+The first bit in the control bits decides if it is a rotate or shift operation.
+`1` means rotate, `0` means shift. If it is a rotation, when a bit is shifted
+out on a side it immediately goes to the other, all throughout the operation.
+The rest of the control bits depend on whether it is a rotation or shift.
+
+Shifting:
+
+- Direction. `0` means a right shift and `1` means left shift.
+- Type. `0` means regular shift, `1` means arithmetic shift.
+
+Rotating:
+
+- Whether to rotate through carry. Rotates through carry instead of like usual
+  if `1`.
+- Wrap Mode. `0` means normal rotate, `1` means complement on wrap (XOR with 1
+  during wrap-around).
