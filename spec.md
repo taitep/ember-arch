@@ -138,3 +138,9 @@ Rotating:
   if `1`.
 - Wrap Mode. `0` means normal rotate, `1` means complement on wrap (XOR with 1
   during wrap-around).
+
+# Errors
+
+How errors are handled depends on the specific implementation/emulator, but
+should always either result in a noop or halt functionally for the processor,
+but can involve extra things (such as an emulator logging what went wrong).
