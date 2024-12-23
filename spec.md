@@ -8,8 +8,9 @@ Instructions are 32 bits. Last 16 are typically an address or immediate value.
 First 4 are an opcode. The rest are decided by what that opcode is.
 
 - `0b0000`: Operation
-- `0b0001`: Load
-- `0b0010`: Store
+- `0b0001`: Comparision
+- `0b0010`: Load
+- `0b0011`: Store
 - `0b0100`: Jump
 - `0b0110`: Stack Read
 - `0b0111`: Stack Write
@@ -50,6 +51,13 @@ and `1` means Shift.
 The result of the operation always goes in the destination register, which is
 also the A input of the operation.
 
+## Comparison
+
+Works the same as [Operation](#operation), but while what is referred to as the
+Destination register in that instruction is just the A input and not where the
+output is placed in. The output is treated as always being put in register zero,
+which means it is voided.
+
 ## More specific intructions
 
 First 2 bytes: `1111 OOOO OOOOOOOO`
@@ -84,6 +92,10 @@ The flags in the processor are the following:
 
 In that order, each one is numbered 1-3 or `0b01` - `0b11`. Flag 0 is considered
 always active. Each flag has a separate variant for 8 or 16 bit operations.
+
+Flags are set by the Comparison or Operation instruction, or when otherwise
+noted. Any instruction that does not say it sets flags does not do so
+automatically just because it happens to use the ALU.
 
 # ALU
 
