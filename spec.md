@@ -86,7 +86,7 @@ mode, `0` means 16-bit mode.
 
 ## Store
 
-First 2 bytes: `0011 D OO A x E M SSS x`
+First 2 bytes: `0011 DD OO A x E M SSS x`
 
 `D` is the source register, where the data is coming from.
 
