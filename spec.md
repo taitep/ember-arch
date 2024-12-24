@@ -1,6 +1,8 @@
 This is the spec for a 16-bit CPU/ISA that im working on called Ember.
 
-The default byte order of the CPU is Little Endian, including in instructions.
+The default byte order of the CPU is Little Endian, including in operands if the
+last 2 bytes of an instruction is used as a single 16 bit number. If they are a
+single 8-bit number, it is the second to last byte unless otherwise specified.
 
 Ember is a Von Neumann architecture, meaning the program and data memory share
 the same address space.
