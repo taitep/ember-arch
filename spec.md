@@ -1,6 +1,9 @@
-This is the spec for a 16-bit CPU that im working on called Ember.
+This is the spec for a 16-bit CPU/ISA that im working on called Ember.
 
 The default byte order of the CPU is Little Endian, including in instructions.
+
+Ember is a Von Neumann architecture, meaning the program and data memory share
+the same address space.
 
 # Instructions
 
