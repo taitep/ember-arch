@@ -60,6 +60,30 @@ which means it is voided.
 
 ## Load
 
+First 2 bytes: `0010 DD OO AA E M SSSS`
+
+`D` is the destination, where the data is put when its been retrieved.
+
+`O` is the offset register. The value is shifted left by `S` and then added to
+the base address.
+
+`A` is the addressing mode, and therefore decides how the last 2 bytes are used.
+
+- `00`: Immediate. The last 2 bytes are the direct value to be loaded into the
+  register. Offset register is ignored.
+- `01`: Direct address. The last 2 bytes is the base address.
+- `10`: Register. The last 2 bits indicates a register where the data to be
+  loaded from is stored. Rest of the last 2 bytes and offset register are
+  ignored.
+- `11`: Address register. The last 2 bits indicates a register where the base
+  address is stored. Rest of the last 2 bytes are ignored.
+
+`E` decides endianness. `0` means little endian, `1` means big endian. Ignored
+for an 8-bit load or when loading from register or immediate.
+
+`M` indicates whether the processor should load 8 or 16 bits. `1` means 8-bit
+mode, `0` means 16-bit mode.
+
 ## Store
 
 ## Jump
