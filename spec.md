@@ -123,6 +123,19 @@ is added to the `SP` to create the address to read data from.
 
 ## Stack Write
 
+Instruction bytes: `0111 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
+
+`D` is the data/source register, where the data to write is read from.
+
+`OR` is the offset register. It is shifted left by `SOR` and added to the base
+offset to create the complete offset.
+
+`P` is the amount to change the stack pointer by. It is shifted left by `S` and
+the stack pointer is decreased by that amount after the data is written.
+
+`O` is the base offset. When added to the shifted `OR` (the complete offset), it
+is added to the `SP` to create the address to write data to.
+
 ## More specific intructions
 
 First 2 bytes: `1111 OOOO OOOOOOOO`
