@@ -108,6 +108,19 @@ address to get the full address.
 
 ## Stack Read
 
+Instruction bytes: `0110 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
+
+`D` is the destination register, where the data read is put.
+
+`OR` is the offset register. It is shifted left by `SOR` and added to the base
+offset to create the complete offset.
+
+`P` is the amount to change the stack pointer by. It is shifted left by `S` and
+the stack pointer is increased by that amount after the data is retreived.
+
+`O` is the base offset. When added to the shifted `OR` (the complete offset), it
+is added to the `SP` to create the address to read data from.
+
 ## Stack Write
 
 ## More specific intructions
