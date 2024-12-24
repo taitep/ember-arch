@@ -106,6 +106,21 @@ address to get the full address.
 
 ## Jump
 
+Instruction bytes: `0100 OO xx SSS I CC S x AAAAAAAA AAAAAAAA`
+
+`O` is the offset register. Its value is shifted left by `S` to create the
+offset.
+
+`C` is the condition to jump. It indicates which flag needs to be set for the
+jump to go through. If `I` is set, the condition is inverted, meaning the flag
+needs to not be set.
+
+`S` indicates whether the jump is a subroutine call. If it is, the program
+counter (before the jump) plus one is pushed to the stack.
+
+`A` is the base address, which is added to the offset to decide what address to
+jump to.
+
 ## Stack Read
 
 Instruction bytes: `0110 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
