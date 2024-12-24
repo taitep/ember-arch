@@ -58,6 +58,16 @@ Destination register in that instruction is just the A input and not where the
 output is placed in. The output is treated as always being put in register zero,
 which means it is voided.
 
+## Load
+
+## Store
+
+## Jump
+
+## Stack Read
+
+## Stack Write
+
 ## More specific intructions
 
 First 2 bytes: `1111 OOOO OOOOOOOO`
