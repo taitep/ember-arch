@@ -169,6 +169,15 @@ specific implementation/emulator.
   bytes of the instruction.
 - `0x002`: Move stack pointer. Adds the last 2 bytes of the instruction to the
   stack pointer.
+- `0x003`: Set flag values. First of the 2 last bytes is used to determine which
+  registers are changed, and the last byte is used to determine what they get
+  changed to, according to this mapping. First `11223344`, Second: `x1x2x3x4`,
+  where, in order 1 to 4, the flag indicated by the 2 bits in the first for that
+  number is changed to the bit at that number in the second. If flag 0 (always
+  active) is selected to be changed, nothing changes.
+- `0x004`: Extend Sign. Last 2 bits indicates a register. The value of the least
+  significant byte of that register is extended with its sign maintained to the
+  whole register.
 
 ## Notes for the instruction definitions
 
