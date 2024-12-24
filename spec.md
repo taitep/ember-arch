@@ -146,7 +146,7 @@ Instruction bytes: `0111 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
 offset to create the complete offset.
 
 `P` is the amount to change the stack pointer by. It is shifted left by `S` and
-the stack pointer is decreased by that amount after the data is written.
+the stack pointer is decreased by that amount before the data is written.
 
 `O` is the base offset. When added to the shifted `OR` (the complete offset), it
 is added to the `SP` to create the address to write data to.
