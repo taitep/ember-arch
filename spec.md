@@ -149,6 +149,8 @@ specific implementation/emulator.
 - `0x000`: Halt.
 - `0x001`: Initialize Stack. Sets the stack pointer to the value of the last 2
   bytes of the instruction.
+- `0x002`: Move stack pointer. Adds the last 2 bytes of the instruction to the
+  stack pointer.
 
 ## Notes for the instruction definitions
 
