@@ -133,6 +133,7 @@ Shifting:
 
 - Direction. `0` means a right shift and `1` means left shift.
 - Type. `0` means regular shift, `1` means arithmetic shift.
+- The rest are ignored
 
 Rotating:
 
@@ -140,6 +141,7 @@ Rotating:
   if `1`.
 - Wrap Mode. `0` means normal rotate, `1` means complement on wrap (XOR with 1
   during wrap-around).
+- The rest are ignored
 
 # Errors
 
