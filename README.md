@@ -24,13 +24,14 @@ feedback and contributions are welcome!
 
 ## Future Plans:
 
-- Finish the main spec.
+- Clarify the main spec if needed.
+- Add stuff that are missing from the spec as I find them.
 - Make things like an emulator and assembler.
 
 ## Getting Started:
 
-> **Note:** This part will start applying when ember is more finished, and is
-> not very relevant currently.
+> **Note:** This part will start applying when ember is more finished and there are reference stuff, and is
+> not very relevant currently. For now, you have to check the (somewhat unclear, create an issue) spec and make your own tooling.
 
 To get started with Ember, check out the available code and documentation in
 this repository. Feel free to fork the project, make improvements, or simply
