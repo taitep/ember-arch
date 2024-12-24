@@ -86,6 +86,27 @@ mode, `0` means 16-bit mode.
 
 ## Store
 
+First 2 bytes: `0011 D OO A x E M SSSS`
+
+`D` is the source register, where the data is coming from.
+
+`O` is the offset register. Shifted to the left by S and added to the base
+address to get the full address.
+
+`A` is the addressing mode. It decides how the last 2 bytes are used.
+
+- `0`: Direct address. The last 2 bytes are the base address.
+- `1`: Address register. The last 2 bits indicate what register holds the base
+  address. The rest of the last 2 bytes are ignored.
+
+`x` is preferrably ignored by emulator/implementation, and preferrably set to 0
+in program.
+
+`E` decides Endianness. `1` means Big Endian, `0` means Little Endian.
+
+`M` decides whether its an 8- or 16-bit store. `0` means 16-bit, `1` means
+8-bit.
+
 ## Jump
 
 ## Stack Read
