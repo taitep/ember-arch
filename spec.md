@@ -60,7 +60,7 @@ which means it is voided.
 
 ## Load
 
-First 2 bytes: `0010 DD OO AA E M SSSS`
+First 2 bytes: `0010 DD OO AA E M SSS x`
 
 `D` is the destination, where the data is put when its been retrieved.
 
@@ -86,7 +86,7 @@ mode, `0` means 16-bit mode.
 
 ## Store
 
-First 2 bytes: `0011 D OO A x E M SSSS`
+First 2 bytes: `0011 D OO A x E M SSS x`
 
 `D` is the source register, where the data is coming from.
 
@@ -98,9 +98,6 @@ address to get the full address.
 - `0`: Direct address. The last 2 bytes are the base address.
 - `1`: Address register. The last 2 bits indicate what register holds the base
   address. The rest of the last 2 bytes are ignored.
-
-`x` is preferrably ignored by emulator/implementation, and preferrably set to 0
-in program.
 
 `E` decides Endianness. `1` means Big Endian, `0` means Little Endian.
 
@@ -126,6 +123,11 @@ specific implementation/emulator.
 - `0x000`: Halt.
 - `0x001`: Initialize Stack. Sets the stack pointer to the value of the last 2
   bytes of the instruction.
+
+## Notes for the instruction definitions
+
+Any `x` is preferrably ignored by emulator/implementation, and preferrably set
+to 0 in program.
 
 # Registers
 
