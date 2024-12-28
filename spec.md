@@ -121,7 +121,7 @@ jump to go through. If `I` is set, the condition is inverted, meaning the flag
 needs to not be set.
 
 `S` indicates whether the jump is a subroutine call. If it is, the program
-counter (before the jump) plus one is pushed to the stack.
+counter (before the jump) plus 4 (size of one instruction) is pushed to the stack.
 
 `A` is the base address, which is added to the offset to decide what address to
 jump to.
