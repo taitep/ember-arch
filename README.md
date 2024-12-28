@@ -33,6 +33,8 @@ feedback and contributions are welcome!
 > **Note:** This part will start applying when ember is more finished and there are reference stuff, and is
 > not very relevant currently. For now, you have to check the (somewhat unclear, create an issue) spec and make your own tooling.
 
+> **Note:** I have started work on a sample emulator. It will be done in a while but should no matter what be able to clarify some unclear stuff, as it is intended to be a reference/sample implementation. If you can read code, please check the emulator if you need clarification.
+
 To get started with Ember, check out the available code and documentation in
 this repository. Feel free to fork the project, make improvements, or simply
 explore the architecture.
