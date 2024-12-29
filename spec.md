@@ -41,8 +41,7 @@ input comes from, and how the last 2 bytes of the instruction are used.
   or destination register. The rest of the 2 bytes are ignored.
 - `10`: Memory. The last 2 bytes of the instruction are treated as a memory
   address, and the value at that memory address is used as the B input.
-- `11`: Memory (Big Endian): Same as `10` but uses Big Endian. In 8-bit mode
-  this variant makes it take the value from 1 + the address.
+- `11`: Memory (Big Endian): Same as `10` but uses Big Endian. Same as regular in 8-bit mode.
 
 `O` is what operation to perform. Either fed to the shift module or ALU
 depending on `A/S`
