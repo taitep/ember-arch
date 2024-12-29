@@ -28,7 +28,7 @@ Here are the more detailed definitions of each opcode:
 
 ## Operation
 
-First 2 bytes: `0000 DD SS OOOOO M A/S`
+First 2 bytes: `0000 DD SS OOOOO M A/S x`
 
 `D` is the destination register where the result is put.
 
