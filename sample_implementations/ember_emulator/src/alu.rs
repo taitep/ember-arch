@@ -23,7 +23,7 @@ impl From<u8> for ALUSettings {
 }
 
 impl ALUSettings {
-    fn perform_operation(&self, input_a: u16, input_b: u16, flags: Option<&mut Flags>) -> u16 {
+    pub fn perform_operation(&self, input_a: u16, input_b: u16, flags: Option<&mut Flags>) -> u16 {
         let input_a = input_a ^ self.invert_a as u16 * 0xFFFF;
         let input_b = input_b ^ self.invert_b as u16 * 0xFFFF;
 
@@ -61,7 +61,12 @@ impl ALUSettings {
         sum
     }
 
-    fn perform_operation_8bit(&self, input_a: u8, input_b: u8, flags: Option<&mut Flags>) -> u8 {
+    pub fn perform_operation_8bit(
+        &self,
+        input_a: u8,
+        input_b: u8,
+        flags: Option<&mut Flags>,
+    ) -> u8 {
         let input_a = input_a ^ self.invert_a as u8 * 0xFF;
         let input_b = input_b ^ self.invert_b as u8 * 0xFF;
 

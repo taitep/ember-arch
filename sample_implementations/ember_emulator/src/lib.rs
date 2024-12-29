@@ -1,5 +1,6 @@
 mod alu;
 mod errors;
+mod instructions;
 
 #[derive(Debug)]
 pub struct Ember {
@@ -7,6 +8,7 @@ pub struct Ember {
     regs: [Register; 4],
     flags: Flags,
     exec_state: ExecutionState,
+    pub pc: u16,
 }
 
 /// Main CPU state struct. Contains all current machine state including RAM.
@@ -22,6 +24,7 @@ impl Ember {
             ],
             flags: Flags::default(),
             exec_state: ExecutionState::Running,
+            pc: 0,
         }
     }
 
