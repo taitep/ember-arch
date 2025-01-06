@@ -23,17 +23,17 @@ impl From<u8> for ALUSettings {
 }
 
 impl ALUSettings {
-    pub fn perform_operation(&self, input_a: u16, input_b: u16, flags: Option<&mut Flags>) -> u16 {
-        let input_a = input_a ^ self.invert_a as u16 * 0xFFFF;
-        let input_b = input_b ^ self.invert_b as u16 * 0xFFFF;
+    pub fn perform_operation<T: int::UInt>(&self, input_a: T, input_b: T, flags: Option<&mut Flags>) -> T {
+        let input_a = input_a ^ if self.invert_a {T::MAX_VALUE} else {T::_0};
+        let input_b = input_b ^ if self.invert_b {T::MAX_VALUE} else {T::_0};
 
         let mut carry = self.carry_in;
 
-        let mut sum = 0u16;
+        let mut sum: T = T::_0;
 
-        for bit in 0..16usize {
-            let a_bit = input_a & (1 << bit) != 0;
-            let b_bit = input_b & (1 << bit) != 0;
+        for bit in 0..T::BIT_COUNT {
+            let a_bit = input_a & (T::_1 << bit) != T::_0;
+            let b_bit = input_b & (T::_1 << bit) != T::_0;
 
             let sum_bit = if !self.or_mode {
                 a_bit ^ b_bit ^ carry
@@ -41,7 +41,7 @@ impl ALUSettings {
                 (a_bit | b_bit) ^ carry
             };
 
-            sum |= (sum_bit as u16) << bit;
+            sum = sum | (if sum_bit {T::_1} else {T::_0}) << bit;
 
             carry = if self.flood_carry {
                 true
@@ -54,51 +54,8 @@ impl ALUSettings {
 
         if let Some(flags) = flags {
             flags.flag_carry = carry;
-            flags.flag_sign = sum & 0b10000000_00000000 != 0;
-            flags.flag_zero = sum == 0;
-        }
-
-        sum
-    }
-
-    pub fn perform_operation_8bit(
-        &self,
-        input_a: u8,
-        input_b: u8,
-        flags: Option<&mut Flags>,
-    ) -> u8 {
-        let input_a = input_a ^ self.invert_a as u8 * 0xFF;
-        let input_b = input_b ^ self.invert_b as u8 * 0xFF;
-
-        let mut carry = self.carry_in;
-
-        let mut sum = 0u8;
-
-        for bit in 0..8usize {
-            let a_bit = input_a & (1 << bit) != 0;
-            let b_bit = input_b & (1 << bit) != 0;
-
-            let sum_bit = if !self.or_mode {
-                a_bit ^ b_bit ^ carry
-            } else {
-                (a_bit | b_bit) ^ carry
-            };
-
-            sum |= (sum_bit as u8) << bit;
-
-            carry = if self.flood_carry {
-                true
-            } else if !self.or_mode {
-                [a_bit, b_bit, carry].iter().filter(|x| **x).count() >= 2
-            } else {
-                a_bit & b_bit & carry
-            }
-        }
-
-        if let Some(flags) = flags {
-            flags.flag_carry = carry;
-            flags.flag_sign = sum & 0b10000000 != 0;
-            flags.flag_zero = sum == 0;
+            flags.flag_sign = sum & T::_1 << (T::BIT_COUNT - 1) as u8 != T::_0;
+            flags.flag_zero = sum == T::_0;
         }
 
         sum
