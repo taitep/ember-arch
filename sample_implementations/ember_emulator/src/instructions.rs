@@ -1,7 +1,11 @@
+#![allow(dead_code)]
+
 use crate::{
     alu::ALUSettings,
     errors::{self, InvalidOpcode},
 };
+
+pub use Instruction::*;
 
 #[derive(Debug, Clone)]
 pub enum Instruction {
@@ -49,7 +53,7 @@ impl TryFrom<u16> for Instruction {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         match (value >> 12) & 0b1111 {
-            0b0000 => Ok(Instruction::Operation {
+            0b0000 => Ok(Operation {
                 a_register: ((value >> 10) & 0b11) as usize,
                 destination_register: ((value >> 10) & 0b11) as usize,
                 operation_type: if (value >> 1) & 0b1 == 0 {
@@ -70,7 +74,8 @@ impl TryFrom<u16> for Instruction {
                 },
                 is_8bit: ((value >> 2) & 0b1) != 0,
             }),
-            0b0001 => Ok(Instruction::Operation {
+
+            0b0001 => Ok(Operation {
                 // Comparison is just operation but the result goes in the zero register
                 a_register: ((value >> 10) & 0b11) as usize,
                 destination_register: 0,
@@ -92,7 +97,8 @@ impl TryFrom<u16> for Instruction {
                 },
                 is_8bit: ((value >> 2) & 0b1) != 0,
             }),
-            0b0010 => Ok(Instruction::Load {
+
+            0b0010 => Ok(Load {
                 destination_register: ((value >> 10) & 0b11) as usize,
                 offset_config: OffsetConfig {
                     register: ((value >> 8) & 0b11) as usize,
@@ -108,11 +114,52 @@ impl TryFrom<u16> for Instruction {
                 is_big_endian: ((value >> 5) & 1) != 0,
                 is_8bit: ((value >> 4) & 1) != 0,
             }),
-            0b0011 => todo!(), // Store
-            0b0100 => todo!(), // Jump
-            0b0110 => todo!(), // Stack Read
-            0b0111 => todo!(), // Stack Write
-            0b1111 => todo!(), // More Specific Instructions
+
+            0b0011 => Ok(Store {
+                source_register: ((value >> 10) & 0b11) as usize,
+                offset_config: OffsetConfig {
+                    register: ((value >> 8) & 0b11) as usize,
+                    shift_amount: (value >> 1) & 0b111,
+                },
+                addressing_mode: match ((value >> 7) & 1) != 0 {
+                    false => StoreAddressingMode::DirectAddress,
+                    true => StoreAddressingMode::AddressRegister,
+                },
+                is_big_endian: ((value >> 5) & 1) != 0,
+                is_8bit: ((value >> 4) & 1) != 0,
+            }),
+
+            0b0100 => Ok(Jump {
+                offset_config: OffsetConfig {
+                    register: ((value >> 10) & 0b11) as usize,
+                    shift_amount: (value >> 5) & 0b111,
+                },
+                condition: Condition {
+                    flag: ((value >> 2) & 0b11) as usize,
+                    inverted: ((value >> 4) & 1) != 0,
+                },
+                is_subroutine_call: ((value >> 1) & 1) != 0,
+            }),
+
+            0b0110 => Ok(StackRead {
+                destination_register: ((value >> 10) & 0b11) as usize,
+                offset_config: OffsetConfig {
+                    register: ((value >> 8) & 0b11) as usize,
+                    shift_amount: (value >> 5) * 0b111,
+                },
+                stack_pointer_change: (value & 0b11) << ((value >> 2) & 0b111),
+            }),
+
+            0b0111 => Ok(StackWrite {
+                source_register: ((value >> 10) & 0b11) as usize,
+                offset_config: OffsetConfig {
+                    register: ((value >> 8) & 0b11) as usize,
+                    shift_amount: (value >> 5) & 0b111,
+                },
+                stack_pointer_change: (value & 0b11) << ((value >> 2) & 0b111),
+            }),
+
+            0b1111 => Ok(MoreSpecific(MoreSpecificInstructionOpcode::from(value))),
 
             0b1000..0b1111 | 0b0101 => Err(InvalidOpcode::from(value)),
             _ => unreachable!(),
@@ -129,6 +176,7 @@ pub enum OperationSourceMode {
 
 #[derive(Debug, Clone, Copy)]
 pub enum OperationType {
+    #[allow(clippy::upper_case_acronyms)]
     ALU(ALUSettings),
 }
 
