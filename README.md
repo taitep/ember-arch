@@ -1,45 +1,14 @@
 # Ember CPU Architecture
 
-**Ember** is a simple yet feature-rich **16-bit CPU architecture** that I'm
-currently developing. The goal of Ember is to create an architecture that is
-easy to **emulate** and **implement**, while also incorporating interesting
-features drawn from my research into various CPU designs (which could make it slightly harder to emulate in some specific situations).
+**Ember** is an ISA/CPU architecture im working on. Its pretty simple, and is meant to be pretty simple to emulate, but IDK.
 
-## Key Features:
+This repo contains the spec of the architecture as well as some sample implementations of an emulator and assembler, but they are just sample implementations. I will make other, more finished, and more modular implementations of the system in the future.
 
-- **Simple 16-bit Architecture**: Designed with ease of emulation in mind.
-- **Unique Instruction Set**: Incorporates both standard and more advanced
-  instructions.
-- **Flexible and Extendable**: Designed to be easily extended with additional
-  instructions and features in the future.
-- **Easy to Implement**: Includes a reference emulator and assembler to help you
-  get started quickly (coming  soon).
+## Current state of the project
 
-## Current Status:
+Ember is **NOWHERE NEAR** finished. There is still a lot of work to be done on both sample implementations and the spec, and later the actual implementation of an emulator, assembler, and potentially compiler (toolchain) for the system.
 
-Ember is **still a work in progress** and **nowhere near complete**, but
-development is ongoing. As I continue to refine the architecture and add more
-features, I hope to make the project more robust and ready for broader use. Your
-feedback and contributions are welcome!
-
-## Future Plans:
-
-- Clarify the main spec if needed.
-- Add stuff that are missing from the spec as I find them.
-- Make things like an emulator and assembler.
-
-## Getting Started:
-
-> **Note:** This part will start applying when ember is more finished and there are reference stuff, and is
-> not very relevant currently. For now, you have to check the (somewhat unclear, create an issue) spec and make your own tooling.
-
-> **Note:** I have started work on a sample emulator. It will be done in a while but should no matter what be able to clarify some unclear stuff, as it is intended to be a reference/sample implementation. If you can read code, please check the emulator if you need clarification.
-
-To get started with Ember, check out the available code and documentation in
-this repository. Feel free to fork the project, make improvements, or simply
-explore the architecture.
-
-## License:
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file
 for more information.
