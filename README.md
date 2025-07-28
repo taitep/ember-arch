@@ -2,7 +2,7 @@
 
 **Ember** is an ISA im working on. Its pretty simple, and is meant to be pretty simple to emulate, but IDK.
 
-Its also meant to be possible to adapt and change, creating some other architecture based on ember that has all the core functionality of ember but decides on more of the specifics and maybe adds some features. Lacking features are therefore (to an extent) probably/possibly just stuff meant to be added in such an architecture, instead of base ember.
+Its also meant to be somewhat extendable, and some form of "extension" or specification beyond the base spec is kinda needed to actually run code using it. It doesnt even specify where execution begins or anything. This is JUST the ISA. In the future, I will certainly (more like maybe) make some extensions and a full on architecture that can actually run some code.
 
 This repo contains the spec of the architecture as well as some sample implementations of an emulator and assembler, but they are just sample implementations. I will make other, more finished, and more modular implementations of the system in the future.
 
