@@ -1,107 +1,165 @@
 This is the spec for a 16-bit CPU/ISA that im working on called Ember.
 
-The default byte order of the CPU is Little Endian, including in operands if the
-last 2 bytes of an instruction is used as a single 16 bit number. If they are a
-single 8-bit number, it is the second to last byte unless otherwise specified.
+The default byte order of the CPU is Little Endian. Endianness mostly does apply to 8 bit values if in memory, including in operands.
 
 Ember is a Von Neumann architecture, meaning the program and data memory share
 the same address space.
 
 # Instructions
 
-Instructions are 32 bits. Last 16 are typically an address or immediate value.
-First 4 are an opcode. The rest are decided by what that opcode is.
+Instructions are 4 bytes. Last 2 are the operand, first 2 are the instruction bytes. The instruction bytes are written out as Big Endian, while the operand should by default be treated as Little Endian like anything else.
+First few of the instruction bytes are the opcode, the exact number of opcode bits differ between instructions depending on how many control bits they need. Obviously, an opcode can not start with another instructions opcode, or there will be a conflict.
 
-- `0b0000`: Operation
-- `0b0001`: Comparision
-- `0b0010`: Load
-- `0b0011`: Store
-- `0b0100`: Jump
-- `0b0110`: Stack Read
-- `0b0111`: Stack Write
-- `0b1111`: More specific instructions
+- `0001---- --------`: ALU Operation
+- `00001--- --------`: Shift
+- `00000000 01------`: Multiply
+- `0010---- --------`: Load
+- `00110--- --------`: Store
+- `00111--- --------`: Jump
+- `00000000 00000001`: Return
+- `00000000 00001---`: Pull
+- `00000000 000001--`: Push
+- `000001-- --------`: Stack Read
+- `010000-- --------`: Stack Write
+- `00000001 --------`: Load Stack Pointer
+- `00000000 10------`: Move Stack Pointer
+- `00000000 00000010`: Initialize Stack
+- `010001-- --------`: Flag Operation
+- `00000000 00010---`: Load/Store Flags
+- `00000010 0-------`: Store Single Flag
+- `00000000 0010----`: Extend Value
+- `00000000 11------`: Scale Value
+- `01111111 010101--`: Debug
+- `01111111 11111111`: Query Extensions
+- `00000000 00000000`: NOOP
+- `11111111 11111111`: Halt
 
-The rest of the opcodes are reserved for future updates, except `0b1000` -
-`0b1100` (exclusive), which can be used by the specific implementation/emulator.
+All opcodes starting with a `0` as well as `11111111 11111111` are reserved for the base spec and official extensions.
 
 Here are the more detailed definitions of each opcode:
 
-## Operation
+## ALU Operation
 
-First 2 bytes: `0000 DD SS OOOOO M A/S x`
+Instruction bytes: `0001 DD SS CCCCCC M V`
 
 `D` is the destination register where the result is put.
 
 `S` is the "source mode", which decides exactly how its decided where the B
-input comes from, and how the last 2 bytes of the instruction are used.
+input comes from, and how the operand is used.
 
-- `00`: Immediate. The last 2 bytes of the instruction are used as the B input.
-- `01`: Register. The last 2 bits of the instruction decide which register
+- `00`: Immediate. The operand is used as the B input.
+- `01`: Register. The  least significant bits of the operand decides which register
   should be the B input. This can be any register, including the zero register
   or destination register. The rest of the 2 bytes are ignored.
-- `10`: Memory. The last 2 bytes of the instruction are treated as a memory
+- `10`: Memory. The operand is treated as a memory
   address, and the value at that memory address is used as the B input.
-- `11`: Memory (Big Endian): Same as `10` but uses Big Endian. Same as regular in 8-bit mode.
+- `11`: Stack. Reads the B input from the address you get by adding the operand to the stack pointer.
 
-`O` is what operation to perform. Either fed to the shift module or ALU
-depending on `A/S`
+`C` is the ALU control bits
 
-`M` is whether the CPU is operating in 8- or 16-bit mode. `0` means 16-bit mode
-and `1` means 8-bit mode.
+`M` is whether the ALU is using 8-bit mode. `1` means it does, `0` means it does not. In 8-bit mode, all flags are set as if the operation is using only the lower bytes, and the B input is only 8 bits, but the A input is still 16, and the output.
 
-`A/S` decides whether the operation is an ALU or Shift operation. `0` means ALU
-and `1` means Shift.
+`V` decides whether to void the result. If set to `1`, the destination register is only the A input, and the result is treated as getting put in register 0. Used for comparisons.
 
 The result of the operation always goes in the destination register, which is
 also the A input of the operation.
 
-## Comparison
+## Shift
 
-Works the same as [Operation](#operation), but while what is referred to as the
-Destination register in that instruction is just the A input and not where the
-output is placed in. The output is treated as always being put in register zero,
-which means it is voided.
+Instruction bytes: `00001 D RR SS II M V OO`
+
+`R` is the register holding the value to be shifted, also where the result is put.
+
+`S` is the source mode, which decides from where the amount to shift by comes.
+
+- `00`: Immediate. The operand is the amount to shift by.
+- `01`: Register. The operand is a register which holds the amount to shift by.
+- `10`: Memory. The operand is a memory address pointing to the amount to shift by.
+- `11`: Stack. Reads the amount to shift by from the address you get by adding the operand to the stack pointer.
+
+Bits beyond the least significant 4 bits in the amount to shift are ignored.
+
+`D` is the direction of the shift. `0` means left and `1` means right.
+
+`I` is the insert mode, which decides what is inserted where something is shifted out of:
+
+- `00`: `0` always inserted
+- `01`: `1` always inserted
+- `10`: Rotation. Whatever was shifted out last is always inserted.
+- `11`: The bit at the end that bits are being shifted from is replicated (MSB for right, LSB for left). In the case of a right shift, this is an arithmetic shift.
+
+`M` is whether the shift is in 8-bit mode. `1` means it does, `0` means it does not. In 8-bit mode, flags are set as if the lower byte of `R` is the only one, insertion to the right happens also at the lower byte, and insertions are determined as if the shift was happening in only the lower byte, but the upper byte is still shifted.
+
+`V` decides whether to void the result. If set to `1`, `R` is not modified, and the result is treated as getting put in register 0.
+
+`O` is the register the bits that are shifted out are put in. The bits that are shifted out are placed in the least significant bits of this register in the same order they were in the original register. The rest of that register is set to all `0`s.
+
+Flags are set like this by a shift:
+- Zero and Sign are set like usual based on the result
+- Carry is the last value to be shifted out
+- Overflow is set if a 1 was shifted out during the operation
+
+## Multiply
+
+Instruction Bytes: `00000000 01 RR SS HH`
+
+Multiplies an unsigned 16-bit number with an 8-bit one.
+
+`R` is the register holding the 16-bit number, and where the result is put.
+
+`S` is the source mode. It decides how the operand is used to determine the B input (8-bit input)
+
+- `00`: Immediate. The operand holds the B input.
+- `01`: Register. The operand is a register which holds the B input in its low byte.
+- `10`: Memory. The operand is a memory address pointing to the B input.
+- `11`: Stack. Reads the B input from the address you get by adding the operand to the stack pointer.
+
+`H` is the register in which the high output byte is put. Just like loading an 8 bit value into it, only the low byte of it is affected.
+
+Flags are set like this by a multiplication:
+- Zero is set like usual, but not including the high byte.
+- Sign is set if the most significant bit of the 16-bit part of the result is a `1`.
+- Overflow is set if the high output byte has ANY `1`s.
+- Carry is set if the least significant bit of the high output byte is a `1`.
 
 ## Load
 
-First 2 bytes: `0010 DD OO AA E M SSS x`
+Instruction bytes: `0010 DD OO AA E M SS FF`
 
-`D` is the destination, where the data is put when its been retrieved.
+`D` is the destination register, where the data is put when its been retrieved.
 
-`O` is the offset register. The value is shifted left by `S` and then added to
-the base address.
+`O` is the offset register. The value is shifted left by `S`, multiplied by `F`+1, and then added to
+the base address. Ignored in Immediate or Register modes.
 
-`A` is the addressing mode, and therefore decides how the last 2 bytes are used.
+`A` is the addressing mode. It decides how the operand is used.
 
-- `00`: Immediate. The last 2 bytes are the direct value to be loaded into the
+- `00`: Immediate. The operand the direct value to be loaded into the
   register. Offset register is ignored.
-- `01`: Direct address. The last 2 bytes is the base address.
-- `10`: Register. The last 2 bits indicates a register where the data to be
-  loaded from is stored. Rest of the last 2 bytes and offset register are
-  ignored.
-- `11`: Address register. The last 2 bits indicates a register where the base
-  address is stored. Rest of the last 2 bytes are ignored.
+- `01`: Direct address. The operand is the base address.
+- `10`: Register. The operand is a register where the data to be
+  loaded from is stored. Offset is ignored.
+- `11`: Register Indirect. The operand is a register where the base
+  address is stored.
 
-`E` decides endianness. `0` means little endian, `1` means big endian. Ignored
-for an 8-bit load or when loading from register or immediate.
+`E` decides endianness. `0` means little endian, `1` means big endian. When loading from a register, this swaps the bytes of the register.
 
 `M` indicates whether the processor should load 8 or 16 bits. `1` means 8-bit
-mode, `0` means 16-bit mode.
+mode, `0` means 16-bit mode. In 8-bit mode, the upper byte of the register is left untouched, and the lower byte of the source is treated as the only byte.
 
 ## Store
 
-First 2 bytes: `0011 DD OO A x E M SSS x`
+Instruction bytes: `00110 DD A OO SS FF E M`
 
 `D` is the source register, where the data is coming from.
 
 `O` is the offset register. Shifted to the left by S and added to the base
 address to get the full address.
 
-`A` is the addressing mode. It decides how the last 2 bytes are used.
+`A` is the addressing mode. It decides how the operand is used.
 
-- `0`: Direct address. The last 2 bytes are the base address.
-- `1`: Address register. The last 2 bits indicate what register holds the base
-  address. The rest of the last 2 bytes are ignored.
+- `0`: Direct address. The operand is the base address.
+- `1`: Address register. The operand is what register holds the base
+  address.
 
 `E` decides Endianness. `1` means Big Endian, `0` means Little Endian.
 
@@ -110,84 +168,176 @@ address to get the full address.
 
 ## Jump
 
-Instruction bytes: `0100 OO xx SSS I CC S x AAAAAAAA AAAAAAAA`
+Instruction bytes: `00111 OO SS FF CCCC R`
 
-`O` is the offset register. Its value is shifted left by `S` to create the
+`O` is the offset register. Its value is shifted left by `S` and multiplied by `F`+1 to create the
 offset.
 
 `C` is the condition to jump. It indicates which flag needs to be set for the
-jump to go through. If `I` is set, the condition is inverted, meaning the flag
-needs to not be set.
+jump to go through.
 
-`S` indicates whether the jump is a subroutine call. If it is, the program
+`R` indicates whether the jump is a subroutine call. If it is, the program
 counter (before the jump) plus 4 (size of one instruction) is pushed to the stack.
 
-`A` is the base address, which is added to the offset to decide what address to
+The operand is the base address, which is added to the offset to decide what address to
 jump to.
 
-## Stack Read
+## Return
 
-Instruction bytes: `0110 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
+Instruction Bytes: `00000000 00000001`
+
+Pulls one value off the stack and jumps to that address.
+
+## Pull
+
+Instruction bytes: `00000000 00001 DD M`
 
 `D` is the destination register, where the data read is put.
 
-`OR` is the offset register. It is shifted left by `SOR` and added to the base
-offset to create the complete offset.
+`M` is whether this is a 16 or 8 bit pull. `0` means 16, `1` means 8.
 
-`P` is the amount to change the stack pointer by. It is shifted left by `S` and
-the stack pointer is increased by that amount after the data is retreived.
+## Push
 
-`O` is the base offset. When added to the shifted `OR` (the complete offset), it
-is added to the `SP` to create the address to read data from.
+Instruction bytes: `00000000 000001 S M`
+
+`S` is the source mode.
+- `0`: Immediate. The operand is the value to be pushed.
+- `1`: Register. The operand is the register to be pushed.
+
+`M` is whether this is a 16 or 8 bit push. `0` means 16, `1` means 8.
+
+## Stack Read
+
+Instruction Bytes: `000001 DD OO SS FF E M`
+
+Reads a value from the stack with an offset, and without moving the stack pointer.
+
+`D` is the register the data goes in.
+
+`E` is the endianness. `0` is little endian, `1` is big endian.
+
+`M` is whether this is a 16 or 8 bit read. `1` means 16, `8` means 8.
+
+The offset is calculated as the operand plus the data at register `O` shifted left by `S` and multiplied by `F`+1.
 
 ## Stack Write
 
-Instruction bytes: `0111 DD OR SOR SSS PP OOOOOOOO OOOOOOOO`
+Instruction Bytes: `010000 DD OO SS FF E M`
 
-`D` is the data/source register, where the data to write is read from.
+Writes a value to the stack with an offset, and without moving the stack pointer.
 
-`OR` is the offset register. It is shifted left by `SOR` and added to the base
-offset to create the complete offset.
+`D` is the register the data comes from.
 
-`P` is the amount to change the stack pointer by. It is shifted left by `S` and
-the stack pointer is decreased by that amount before the data is written.
+`E` is the endianness. `0` is little endian, `1` is big endian.
 
-`O` is the base offset. When added to the shifted `OR` (the complete offset), it
-is added to the `SP` to create the address to write data to.
+`M` is whether this is a 16 or 8 bit read. `1` means 16, `8` means 8.
 
-## More specific intructions
+The offset is calculated as the operand plus the data at register `O` shifted left by `S` and multiplied by `F`+1.
 
-First 2 bytes: `1111 OOOO OOOOOOOO`
+## Load Stack Pointer
 
-`O` is a sort of sub-opcode. This opcode is intended for more specific stuff
-that are not covered by the main set of instructions, but that does not mean the
-have to be uncommon to use. `0x000` - `0x100` (exclusive) are reserved for the
-base spec (including future updates), but the rest are free to be used by the
-specific implementation/emulator.
+Instruction Bytes: `00000001 DD OO SS FF`
 
-- `0x000`: Halt.
-- `0x001`: Initialize Stack. Sets the stack pointer to the value of the last 2
-  bytes of the instruction.
-- `0x002`: Move stack pointer. Adds the last 2 bytes of the instruction to the
-  stack pointer.
-- `0x003`: Set flag values. First of the 2 last bytes is used to determine which
-  registers are changed, and the last byte is used to determine what they get
-  changed to, according to this mapping. First `11223344`, Second: `x1x2x3x4`,
-  where, in order 1 to 4, the flag indicated by the 2 bits in the first for that
-  number is changed to the bit at that number in the second. If flag 0 (always
-  active) is selected to be changed, nothing changes.
-- `0x004`: Extend Sign. Last 2 bits indicates a register. The value of the least
-  significant byte of that register is extended with its sign maintained to the
-  whole register.
+Loads the address the stack pointer is pointing to plus an offset into a register.
 
-## Notes for the instruction definitions
+`D` is the register the address is placed in.
 
-Any `x` is preferrably ignored by emulator/implementation, and preferrably set
-to 0 in program.
+The offset is calculated as the operand plus the data at register `O` shifted left by `S` and multiplied by `F`+1.
+
+## Move Stack Pointer
+
+Instruction Bytes: `00000000 10 MM SS N F`
+
+Moves the stack pointer by adding some value to it.
+
+The value at register `M` is shifted left by `S`, multiplied by `F`+1, and is negated (2s complement) if `N` is `1`. This is then added to the operand to create the amount to move by.
+
+## Initialize Stack
+
+Instruction bytes: `00000000 00000010`
+
+Sets the Stack Pointer to the operand.
+
+## Flag Operation
+
+Instruction Bytes: `010001 OO AAAA BBBB`
+
+Sets the User flag based on a logical operation between 2 flags, one of which may be the user flag itself. The 2 inputs are `A` and `B`.
+
+`O` is the logical operation.
+- `00`: Or
+- `01`: Nor
+- `10`: Xor
+- `11`: Unused
+
+Other logical operations can be formed by using the inverted versions of the operand flags. The user flag can also be directly set to a value by only using flag `0`, which is always True.
+
+## Load/Store Flags
+
+Instruction Bytes: `00000000 00010 S RR`
+
+Loads (to current flags) or stores (to register) between the flags and a register, ordered with a more significant bit holding a higher flag number, so flag 0 (always active) is the least significant bit and it goes up through. Inverted versions of flags are not used. Only the less significant byte of the register is read or written to. What is written to unused flags or flag 0 does not matter.
+
+`L` is whether this is a load. `0` means store, `1` means load.
+
+`R` is the register.
+
+## Store Single Flag
+
+Instruction Bytes: `00000010 0 M RR FFFF`
+
+Sets the register `R` to the value of flag `F`. That value is put in the least significant bit, the rest is cleared.
+
+If `M` is set, only the low byte is cleared and the rest is left untouched.
+
+## Extend Value
+
+Instruction Bytes: `00000000 0010 MM RR`
+
+Extends the 8 bit value in register `R` to be 16 bit, overwriting the registers more significant bit.
+
+`M` is the mode, which decides what bits are used for the extension.
+
+- `00`: `0`
+- `01`: `1`
+- `10`: Sign bit of the 8 bit value
+- `11`: User flag
+
+## Scale Value
+
+Instruction Bytes: `00000000 11 RR SS FF`
+
+`R` is a register holding the value to be scaled, also where the result is put.
+
+The value is shifted left by `S` and multiplied by `F`+1 to create the result.
+
+## Debug
+
+Instruction Bytes: `01111111 010101 RR`
+
+Simple debug output. Optional to implement. Outputs one register value (`R`) as well as one character from the operand, which should at minimum be ASCII but may be some form of extended ASCII (e.g. latin1) or in some other way compatible with it directly if an ASCII character is placed in the least significant byte (e.g. UTF8). If the register is the zero register, it is optional to output. If the character is null/0, it is also optional to output.
+
+## Query Extensions
+
+Instruction Bytes: `01111111 11111111
+
+Checks whether the processor currently has the extension specified by the operand. Extensions 0-255 are reserved for official extensions. Whether its available is put into the User flag.
+
+## NOOP
+
+Instruction bytes: `00000000 00000000`
+
+Does absolutely nothing.
+
+## Halt
+
+Instruction bytes: `11111111 11111111`
+
+Halts execution, can not be undone. Operand may be used for debugging purposes by the specific implementation.
 
 # Registers
 
-Registers are addressed by 2 bits. Register 0 always outputs 0 and does not
+Registers are addressed by 2 bits. If addressed by a full 16 bit number, only the least significant bits are used, the rest are ignored. Register 0 always outputs 0 and does not
 store anything put into it. Each of these are 16-bit registers. When an
 operation is only using 8 bits, the LSBs are that byte, but when writing to it
 with an 8-bit value the MSBs are overwritten with all `0`s.
@@ -202,13 +352,18 @@ The flags in the processor are the following:
 - Carry
 - Zero
 - Sign (or MSB)
+- Overflow (generalized as the XOR between the carry in and out of the MSB IN THE CASE OF ALU OPERATIONS, may mean something entirely different from its usual use in other cases such as Shift and Multiply)
 
-In that order, each one is numbered 1-3 or `0b01` - `0b11`. Flag 0 is considered
-always active. Each flag has a separate variant for 8 or 16 bit operations.
+In that order, each one is numbered 1-4 or `0b001` - `0b100`. Flag 0 is considered
+always active. The rest of the flags are not used by the base ISA, and can do whatever depending on extensions, but unofficial extensions should prefer to use the User flag or a separate system if necessary.
 
-Flags are set by the Comparison or Operation instruction, or when otherwise
+Flags are addressed by 4 bits. The first bit decides whether to use the inverted version of the flag, The other 3 are the flag index.
+
+Flags are set by the ALU Operation, Shift, or Multiply instructions, or when otherwise
 noted. Any instruction that does not say it sets flags does not do so
-automatically just because it happens to use the ALU.
+automatically just because it happens to use the ALU or shift.
+
+There is also the special User flag. It is flag 0b111, and is only set by any instruction that specifically says it can set it.
 
 # ALU
 
@@ -226,9 +381,12 @@ In order MSB to LSB:
 - Carry In: Initial carry in is set to 1
 - Logic Mode: The XOR between the A and B inputs for each bit is swapped out for an OR. Carry input of each bit still inverts the output in the same way.
 
+## Examples
+
+- Addition: All control bits off.
+- Subtraction: Invert B (or A if you want to do B-A), Carry In
+- Bitwise NOR: Flood Carry, Carry In, Logic Mode
 
 # Errors
 
-How errors are handled depends on the specific implementation/emulator, but
-should always either result in a noop or halt functionally for the processor,
-but can involve extra things (such as an emulator logging what went wrong).
+Error handling isnt part of the base spec. Unless changed by an extension or just implementation tho, it should cause a halt, but a program shouldnt ever depend on this.
