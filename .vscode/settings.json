@@ -1,5 +1,5 @@
 {
     "rust-analyzer.linkedProjects": [
-        "sample_implementations/ember_emulator/Cargo.toml"
+        "sample_implementations/sample_emulator_rs/Cargo.toml"
     ]
 }
