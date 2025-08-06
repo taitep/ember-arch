@@ -319,7 +319,7 @@ Simple debug output. Optional to implement. Outputs one register value (`R`) as 
 
 ## Query Extensions
 
-Instruction Bytes: `01111111 11111111
+Instruction Bytes: `01111111 11111111`
 
 Checks whether the processor currently has the extension specified by the operand. Extensions 0-255 are reserved for official extensions. Whether its available is put into the User flag.
 
